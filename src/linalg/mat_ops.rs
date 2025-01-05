@@ -908,6 +908,17 @@ impl<E: ComplexField, LhsE: Conjugate<Canonical = E>, RhsE: Conjugate<Canonical 
     }
 }
 
+impl<E: ComplexField, LhsE: Conjugate<Canonical = E>, RhsE: Conjugate<Canonical = E>>
+    Div<Scale<RhsE>> for Scale<LhsE>
+{
+    type Output = Scale<E>;
+
+    #[inline]
+    fn div(self, rhs: Scale<RhsE>) -> Self::Output {
+        Scale(self.0.canonicalize().faer_div(rhs.0.canonicalize()))
+    }
+}
+
 impl<LhsE: ComplexField, RhsE: Conjugate<Canonical = LhsE>> MulAssign<Scale<RhsE>> for Scale<LhsE> {
     #[inline]
     fn mul_assign(&mut self, rhs: Scale<RhsE>) {
@@ -926,6 +937,12 @@ impl<LhsE: ComplexField, RhsE: Conjugate<Canonical = LhsE>> SubAssign<Scale<RhsE
     #[inline]
     fn sub_assign(&mut self, rhs: Scale<RhsE>) {
         self.0 = self.0.faer_sub(rhs.0.canonicalize())
+    }
+}
+impl<LhsE: ComplexField, RhsE: Conjugate<Canonical = LhsE>> DivAssign<Scale<RhsE>> for Scale<LhsE> {
+    #[inline]
+    fn div_assign(&mut self, rhs: Scale<RhsE>) {
+        self.0 = self.0.faer_div(rhs.0.canonicalize())
     }
 }
 

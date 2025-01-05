@@ -842,11 +842,6 @@ pub(crate) mod qd {
             }
 
             #[inline(always)]
-            fn faer_div(self, rhs: Self) -> Self {
-                self / rhs
-            }
-
-            #[inline(always)]
             fn faer_usize_to_index(a: usize) -> Self::Index {
                 a as _
             }
@@ -1004,6 +999,10 @@ pub(crate) mod qd {
             #[inline(always)]
             fn faer_mul(self, rhs: Self) -> Self {
                 self * rhs
+            }
+            #[inline(always)]
+            fn faer_div(self, rhs: Self) -> Self {
+                self / rhs
             }
 
             #[inline(always)]

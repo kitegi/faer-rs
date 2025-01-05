@@ -437,16 +437,18 @@ pub trait ComplexField:
     + core::ops::Add<Self, Output = Self>
     + core::ops::Sub<Self, Output = Self>
     + core::ops::Mul<Self, Output = Self>
+    + core::ops::Div<Self, Output = Self>
     + core::ops::AddAssign<Self>
     + core::ops::SubAssign<Self>
     + core::ops::MulAssign<Self>
+    + core::ops::DivAssign<Self>
 {
     type Real: RealField;
     type Simd: SimdCtx;
     type ScalarSimd: SimdCtx;
     type PortableSimd: SimdCtx;
 
-    /// Converts `value` from `f64` to `Self`.  
+    /// Converts `value` from `f64` to `Self`.
     /// The conversion may be lossy when converting to a type with less precision.
     fn faer_from_f64(value: f64) -> Self;
 
@@ -456,6 +458,8 @@ pub trait ComplexField:
     fn faer_sub(self, rhs: Self) -> Self;
     /// Returns `self * rhs`.
     fn faer_mul(self, rhs: Self) -> Self;
+    /// Returns `self / rhs`.
+    fn faer_div(self, rhs: Self) -> Self;
 
     /// Returns `-self`.
     fn faer_neg(self) -> Self;
@@ -721,8 +725,6 @@ pub trait RealField:
     fn faer_min_positive_sqrt() -> Self;
     fn faer_min_positive_sqrt_inv() -> Self;
 
-    fn faer_div(self, rhs: Self) -> Self;
-
     fn faer_usize_to_index(a: usize) -> IndexFor<Self>;
     fn faer_index_to_usize(a: IndexFor<Self>) -> usize;
     fn faer_max_index() -> IndexFor<Self>;
@@ -801,6 +803,11 @@ impl ComplexField for f32 {
     #[inline(always)]
     fn faer_mul(self, rhs: Self) -> Self {
         self * rhs
+    }
+
+    #[inline(always)]
+    fn faer_div(self, rhs: Self) -> Self {
+        self / rhs
     }
 
     #[inline(always)]
@@ -1133,6 +1140,11 @@ impl ComplexField for f64 {
     }
 
     #[inline(always)]
+    fn faer_div(self, rhs: Self) -> Self {
+        self / rhs
+    }
+
+    #[inline(always)]
     fn faer_neg(self) -> Self {
         -self
     }
@@ -1445,11 +1457,6 @@ impl RealField for f32 {
     }
 
     #[inline(always)]
-    fn faer_div(self, rhs: Self) -> Self {
-        self / rhs
-    }
-
-    #[inline(always)]
     fn faer_usize_to_index(a: usize) -> IndexFor<Self> {
         a as _
     }
@@ -1577,10 +1584,6 @@ impl RealField for f64 {
     #[inline(always)]
     fn faer_zero_threshold() -> Self {
         Self::MIN_POSITIVE
-    }
-    #[inline(always)]
-    fn faer_div(self, rhs: Self) -> Self {
-        self / rhs
     }
 
     #[inline(always)]
@@ -2261,6 +2264,18 @@ impl<E: RealField> ComplexField for Complex<E> {
         Self {
             re: Self::Real::faer_sub(self.re.faer_mul(rhs.re), self.im.faer_mul(rhs.im)),
             im: Self::Real::faer_add(self.re.faer_mul(rhs.im), self.im.faer_mul(rhs.re)),
+        }
+    }
+
+    #[inline(always)]
+    fn faer_div(self, rhs: Self) -> Self {
+        Self {
+            // (self.re * rhs.re + self.im * rhs.im)/(rhs.re^2 + rhs.im^2)
+            re: Self::Real::faer_div(Self::Real::faer_add(self.re.faer_mul(rhs.re), self.im.faer_mul(rhs.im)),
+                rhs.faer_abs2()),
+            // (self.im * rhs.re - self.re * rhs.im)/(rhs.re^2 + rhs.im^2)
+            im: Self::Real::faer_div(Self::Real::faer_sub(self.im.faer_mul(rhs.re), self.re.faer_mul(rhs.im)),
+                rhs.faer_abs2()),
         }
     }
 
@@ -3019,10 +3034,6 @@ impl RealField for Symbolic {
         Self
     }
 
-    #[inline(always)]
-    fn faer_div(self, _rhs: Self) -> Self {
-        Self
-    }
 
     #[inline(always)]
     fn faer_usize_to_index(a: usize) -> Self::Index {
@@ -3173,6 +3184,11 @@ impl ComplexField for Symbolic {
 
     #[inline(always)]
     fn faer_mul(self, _rhs: Self) -> Self {
+        Self
+    }
+
+    #[inline(always)]
+    fn faer_div(self, _rhs: Self) -> Self {
         Self
     }
 

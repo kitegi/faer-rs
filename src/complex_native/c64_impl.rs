@@ -646,6 +646,13 @@ impl ComplexField for c64 {
             im: self.re * rhs.im + self.im * rhs.re,
         }
     }
+    #[inline(always)]
+    fn faer_div(self, rhs: Self) -> Self {
+        Self {
+            re: (self.re * rhs.re + self.im * rhs.im) / (rhs.re.powi(2) + rhs.im.powi(2)),
+            im: (self.im * rhs.re - self.re * rhs.im) / (rhs.re.powi(2) + rhs.im.powi(2)),
+        }
+    }
 
     #[inline(always)]
     fn faer_neg(self) -> Self {
