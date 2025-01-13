@@ -26,7 +26,7 @@ and multithreading settings.
 Supported platforms include the ones supported by Rust.
 Explicit SIMD instructions are currently used for x86-64 and Aarch64 (NEON),
 with plans for SVE/SME and RVV optimizations once intrinsics for those are stabilized in Rust,
-possibly earlier than that if we allow usage of a JIT backend[^1].
+possibly earlier than that if we allow usage of a Just-in-Time (JIT) backend[^1].
 
 The library provides a `Mat` type, allowing for quick and simple construction
 and manipulation of matrices, as well as lightweight view types `MatRef` and
@@ -46,7 +46,7 @@ complex numbers using the aforementioned types as the base element, dual/hyper-d
 
 
 [^1]: Inline assembly is not entirely appropriate for our use case since it's hard to make it generic enough for all the operations and types that we wish to support.
-[^2]: IEEE 754-2008, with no implicit `fusedMultiplyAdd` contractions and with slight differences around NaN handling. See the [float semantics](https://github.com/rust-lang/rfcs/pull/3514) RFC for more information.
+[^2]: IEEE 754-2008, with no implicit `fusedMultiplyAdd` contractions and with slight differences around NaN handling. See the [float semantics](https://github.com/rust-lang/rust/issues/128288) tracking issue for more information.
 [^3]: These support at least for the simpler matrix decompositions (Cholesky, LU, QR). It's not clear yet how to handle iterative algorithms like the SVD and Eigendecomposition.
 
 # Statement of need
@@ -60,7 +60,7 @@ such as data races and fatal use-after-free errors.
 
 Rust also allows compatibility with the C ABI, allowing for simple interoperability
 with C, and most other languages by extension. Once a design has been properly fleshed out,
-we plan to expose a C API, along with bindings to other languages (Currently planned are C, C++, Python and Julia bindings).
+we plan to expose a C API, along with bindings to other languages (C, C++, Python and Julia bindings are currently planned).
 
 Aside from `faer`, the Rust ecosystem lacks high performance matrix factorization
 libraries that aren't C library wrappers, which presents a distribution
@@ -74,7 +74,7 @@ challenge and can impede generic programming.
 data should be laid out in memory. For example, native floating point types are
 laid out contiguously in memory to make use of SIMD instructions that prefer this layout,
 while complex types have the option of either being laid out contiguously or in a split format.
-The latter is also called a zomplex data type in CHOLMOD (@cholmod).
+The latter is also called a zomplex data type in CHOLMOD [@cholmod].
 An example of a type that benefits immensely from this is the double-double type, which is
 composed of two `f64` components, stored in separate containers. This separate
 storage scheme allows us to load each chunk individually to a SIMD register,
@@ -88,7 +88,7 @@ An interesting alternative would be to compile the code Just-in-Time, which coul
 But there are also possible downsides that have to be weighed against these advantages,
 such as increasing the startup time to optimize and assemble the code,
 as well as the gap in maturity between ahead-of-time compilation (currently backed by LLVM),
-and just-in-time compilation, for which the Rust ecosystem is still developing.
+and JIT compilation, for which the Rust ecosystem is still developing.
 The library then uses matrix multiplication as a building block to implement commonly used matrix
 decompositions, based on state of the art algorithms in order to guarantee
 numerical robustness:  
@@ -106,13 +106,13 @@ eigenvalue decomposition, as described by @10.1145/2382585.2382587.
 
 State of the art algorithms are used for each decomposition, allowing performance
 that matches or even surpasses other low level libraries such as OpenBLAS
-(@10.1145/2503210.2503219), LAPACK (@lapack99), and Eigen (@eigenweb).
+[@10.1145/2503210.2503219], LAPACK [@lapack99], and Eigen [@eigenweb].
 
-To achieve high performance parallelism, `faer` uses the Rayon library (@rayon) as a
-backend, and has shown to be competitive with other frameworks such as OpenMP (@chandra2001parallel)
-and Intel Thread Building Blocks (@tbb).
+To achieve high performance parallelism, `faer` uses the Rayon library [@rayon] as a
+backend, and has shown to be competitive with other frameworks such as OpenMP [@chandra2001parallel]
+and Intel Thread Building Blocks [@tbb].
 
-[^5]: For example, computing $A x$ and $A.T y$ with a single pass over $A$, rather than two.
+[^5]: For example, computing $A x$ and $A^T y$ with a single pass over $A$, rather than two.
 
 # Performance
 
